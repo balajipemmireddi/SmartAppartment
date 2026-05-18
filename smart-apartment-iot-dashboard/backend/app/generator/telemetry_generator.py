@@ -38,9 +38,17 @@ class TelemetryGenerator:
             # First value - use middle of range
             value = (min_val + max_val) / 2
         else:
-            # Gradual fluctuation - change by max 5% of range
+            # For power consumption, use smaller fluctuations (1-2% of range)
+            # For other metrics, use 3-5% fluctuations
             range_size = max_val - min_val
-            max_change = range_size * 0.05
+            
+            if metric_name == "power_consumption":
+                # Power consumption changes slowly and smoothly
+                max_change = range_size * 0.015  # 1.5% change
+            else:
+                # Other metrics can fluctuate more
+                max_change = range_size * 0.05  # 5% change
+            
             change = random.uniform(-max_change, max_change)
             value = last_value + change
             value = max(min_val, min(max_val, value))  # Clamp to range
