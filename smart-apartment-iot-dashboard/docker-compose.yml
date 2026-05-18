@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: smart_apartment_db
+    environment:
+      POSTGRES_USER: ${DB_USER:-smartapt}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-smartapt123}
+      POSTGRES_DB: ${DB_NAME:-smart_apartment}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-smartapt}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - smart_apartment_network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: smart_apartment_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@smartapt.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin123}
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - smart_apartment_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smart_apartment_backend
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-smartapt}:${DB_PASSWORD:-smartapt123}@postgres:5432/${DB_NAME:-smart_apartment}
+      SECRET_KEY: ${SECRET_KEY:-your-secret-key-change-in-production}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    networks:
+      - smart_apartment_network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  smart_apartment_network:
+    driver: bridge
