@@ -4,6 +4,20 @@ CREATE DATABASE smart_apartment;
 -- Connect to the database
 \c smart_apartment;
 
+-- Create users table
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    full_name VARCHAR(100),
+    role VARCHAR(20) DEFAULT 'user',
+    is_active BOOLEAN DEFAULT TRUE,
+    is_approved BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create devices table
 CREATE TABLE IF NOT EXISTS devices (
     id SERIAL PRIMARY KEY,
@@ -53,6 +67,8 @@ CREATE TABLE IF NOT EXISTS device_logs (
 );
 
 -- Create indexes for better query performance
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_telemetry_device_code ON telemetry(device_code);
 CREATE INDEX idx_telemetry_created_at ON telemetry(created_at);
 CREATE INDEX idx_alerts_device_code ON alerts(device_code);

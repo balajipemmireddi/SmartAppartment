@@ -9,11 +9,11 @@ import asyncio
 
 from app.config import settings
 from app.database import engine, Base, get_db
-from app.models import Device
+from app.models import Device, User
 from app.generator.devices_config import DEVICES_CONFIG
 from app.generator.telemetry_generator import TelemetryGenerator
 from app.websocket_manager import manager
-from app.routes import devices, telemetry, alerts, dashboard
+from app.routes import devices, telemetry, alerts, dashboard, auth
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -42,6 +42,25 @@ def init_devices(db: Session):
     db.commit()
     print("Devices initialized")
 
+def create_admin_user(db: Session):
+    """Create default admin user"""
+    admin = db.query(User).filter(User.username == "admin").first()
+    if not admin:
+        admin_user = User(
+            username="admin",
+            email="admin@smartapt.com",
+            full_name="Administrator",
+            hashed_password=User.hash_password("admin123"),
+            role="admin",
+            is_active=True,
+            is_approved=True  # Admin is auto-approved
+        )
+        db.add(admin_user)
+        db.commit()
+        print("Admin user created: admin / admin123")
+    else:
+        print("Admin user already exists")
+
 def seed_data(db: Session):
     """Seed initial data"""
     global telemetry_generator
@@ -60,6 +79,9 @@ def seed_data(db: Session):
     else:
         print("Data already exists, skipping seed")
         telemetry_generator = TelemetryGenerator(db)
+    
+    # Create admin user
+    create_admin_user(db)
 
 def generate_telemetry_job():
     """Background job to generate telemetry"""
@@ -129,13 +151,14 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:8000", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(devices.router)
 app.include_router(telemetry.router)
 app.include_router(alerts.router)

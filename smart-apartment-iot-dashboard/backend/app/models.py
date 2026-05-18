@@ -2,6 +2,33 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Foreig
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
+from passlib.context import CryptContext
+
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto", bcrypt__rounds=12)
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    email = Column(String(100), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    full_name = Column(String(100))
+    role = Column(String(20), default="user")  # admin, operator, user
+    is_active = Column(Boolean, default=True)
+    is_approved = Column(Boolean, default=False)  # Admin approval required
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def verify_password(self, password: str) -> bool:
+        return pwd_context.verify(password, self.hashed_password)
+    
+    @staticmethod
+    def hash_password(password: str) -> str:
+        # Truncate password to 72 bytes (bcrypt limit)
+        password_bytes = password.encode('utf-8')[:72]
+        return pwd_context.hash(password_bytes.decode('utf-8', errors='ignore'))
 
 class Device(Base):
     __tablename__ = "devices"

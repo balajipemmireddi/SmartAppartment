@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Smart Apartment DB",
+      "Group": "Servers",
+      "Host": "smart_apartment_db",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "smartapt",
+      "Password": "smartapt123",
+      "SSLMode": "prefer"
+    }
+  }
+}
