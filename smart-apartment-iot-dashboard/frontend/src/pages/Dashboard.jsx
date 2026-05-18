@@ -15,13 +15,16 @@ export default function Dashboard() {
   
   useEffect(() => {
     loadDashboardData()
-    const interval = setInterval(loadDashboardData, 10000) // Refresh every 10 seconds
+    const interval = setInterval(loadDashboardData, 5000) // Refresh every 5 seconds for real-time updates
     return () => clearInterval(interval)
   }, [])
   
   const loadDashboardData = async () => {
     try {
-      setLoading(true)
+      // Only show loading on first load
+      if (!dashboardSummary) {
+        setLoading(true)
+      }
       
       // Load dashboard summary
       const summaryRes = await dashboardAPI.getSummary()
