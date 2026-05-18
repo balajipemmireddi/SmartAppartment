@@ -19,22 +19,30 @@ export default function TelemetryChart({ data, title, dataKey, stroke = '#3b82f6
     )
   }
   
+  // Format data to ensure timestamps are valid
+  const formattedData = data.map(item => ({
+    ...item,
+    displayTime: (() => {
+      try {
+        const date = new Date(item.timestamp)
+        if (isNaN(date.getTime())) return 'N/A'
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      } catch (e) {
+        return 'N/A'
+      }
+    })()
+  }))
+  
   return (
     <div className="bg-dark-700 border border-dark-600 rounded-lg p-6">
       <h3 className="text-lg font-semibold text-white mb-4">{title}</h3>
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
+        <LineChart data={formattedData}>
           <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
           <XAxis
-            dataKey="timestamp"
+            dataKey="displayTime"
             stroke="#9ca3af"
             tick={{ fontSize: 12 }}
-            tickFormatter={(value) => {
-              if (typeof value === 'string') {
-                return new Date(value).toLocaleTimeString()
-              }
-              return value
-            }}
           />
           <YAxis stroke="#9ca3af" tick={{ fontSize: 12 }} />
           <Tooltip
@@ -45,12 +53,7 @@ export default function TelemetryChart({ data, title, dataKey, stroke = '#3b82f6
             }}
             labelStyle={{ color: '#fff' }}
             formatter={(value) => [value.toFixed(2), dataKey]}
-            labelFormatter={(label) => {
-              if (typeof label === 'string') {
-                return new Date(label).toLocaleString()
-              }
-              return label
-            }}
+            labelFormatter={(label) => label}
           />
           <Legend />
           <Line

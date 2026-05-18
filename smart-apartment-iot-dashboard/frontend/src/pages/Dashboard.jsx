@@ -55,25 +55,12 @@ export default function Dashboard() {
       // Load telemetry for charts
       const telemetryRes = await telemetryAPI.getLatest(100)
       
-      // Helper function to safely parse timestamp
-      const parseTimestamp = (dateStr) => {
-        try {
-          const date = new Date(dateStr)
-          if (isNaN(date.getTime())) {
-            return 'N/A'
-          }
-          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-        } catch (e) {
-          return 'N/A'
-        }
-      }
-      
       // Temperature chart
       const tempData = telemetryRes.data
         .filter(t => t.metric_name === 'temperature' && t.metric_value)
         .slice(-20)
         .map(t => ({
-          timestamp: parseTimestamp(t.created_at),
+          timestamp: t.created_at,
           temperature: parseFloat(t.metric_value.toFixed(1)),
         }))
       setTemperatureChart(tempData)
@@ -83,7 +70,7 @@ export default function Dashboard() {
         .filter(t => t.metric_name === 'power_consumption' && t.metric_value)
         .slice(-20)
         .map(t => ({
-          timestamp: parseTimestamp(t.created_at),
+          timestamp: t.created_at,
           power: parseFloat(t.metric_value.toFixed(1)),
         }))
       setPowerChart(powerData)
@@ -93,7 +80,7 @@ export default function Dashboard() {
         .filter(t => t.metric_name === 'water_level' && t.metric_value)
         .slice(-20)
         .map(t => ({
-          timestamp: parseTimestamp(t.created_at),
+          timestamp: t.created_at,
           water: parseFloat(t.metric_value.toFixed(1)),
         }))
       setWaterLevelChart(waterData)
