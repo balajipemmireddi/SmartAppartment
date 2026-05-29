@@ -1,4 +1,4 @@
-# Smart Apartment IoT Dashboard - Complete Technical Documentation
+z# Smart Apartment IoT Dashboard - Complete Technical Documentation
 
 ## Table of Contents
 1. [Executive Summary](#executive-summary)
